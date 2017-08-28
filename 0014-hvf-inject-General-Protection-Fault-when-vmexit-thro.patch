@@ -1,0 +1,32 @@
+From d97c849008de176d790a137c67c8213ad6f41124 Mon Sep 17 00:00:00 2001
+From: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+Date: Wed, 16 Aug 2017 11:29:24 -0500
+Subject: [PATCH 14/14] hvf: inject General Protection Fault when vmexit
+ through vmcall
+
+This commit injects a GP fault when the guest vmexit's by executing a
+vmcall instruction.
+
+Signed-off-by: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+---
+ target/i386/hvf-all.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/target/i386/hvf-all.c b/target/i386/hvf-all.c
+index 25e4fd4eb2..fdb2b12c8a 100644
+--- a/target/i386/hvf-all.c
++++ b/target/i386/hvf-all.c
+@@ -1064,7 +1064,9 @@ int hvf_vcpu_exec(CPUState *cpu)
+             macvm_set_rip(cpu, rip + ins_len);
+             break;
+         case VMX_REASON_VMCALL:
+-            /* TODO: inject #GP fault */
++            env->exception_injected = EXCP0D_GPF;
++            env->has_error_code = true;
++            env->error_code = 0;
+             break;
+         default:
+             fprintf(stderr, "%llx: unhandled exit %llx\n", rip, exit_reason);
+-- 
+2.14.1
+

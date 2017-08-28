@@ -1,0 +1,51 @@
+From 812d704d07e2a4542ba57878990cf2e8af37e1d2 Mon Sep 17 00:00:00 2001
+From: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+Date: Wed, 16 Aug 2017 17:32:42 -0500
+Subject: [PATCH 08/14] apic: add function to apic that will be used by hvf
+
+This commit moves (hides) the function apic_get_highest_priority_irr to
+apic.c and exports it through the interface in apic.h for use by hvf.
+
+Signed-off-by: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+---
+ hw/intc/apic.c         | 11 +++++++++++
+ include/hw/i386/apic.h |  1 +
+ 2 files changed, 12 insertions(+)
+
+diff --git a/hw/intc/apic.c b/hw/intc/apic.c
+index fe15fb6024..3de59d07fd 100644
+--- a/hw/intc/apic.c
++++ b/hw/intc/apic.c
+@@ -305,6 +305,17 @@ static void apic_set_tpr(APICCommonState *s, uint8_t val)
+     }
+ }
+ 
++int apic_get_highest_priority_irr(DeviceState *dev)
++{
++    APICCommonState *s;
++
++    if (!dev) {
++        return -1;
++    }
++    s = APIC_COMMON(dev);
++    return get_highest_priority_int(s->irr);
++}
++
+ static uint8_t apic_get_tpr(APICCommonState *s)
+ {
+     apic_sync_vapic(s, SYNC_FROM_VAPIC);
+diff --git a/include/hw/i386/apic.h b/include/hw/i386/apic.h
+index ea48ea9389..a9f6c0aa33 100644
+--- a/include/hw/i386/apic.h
++++ b/include/hw/i386/apic.h
+@@ -20,6 +20,7 @@ void apic_init_reset(DeviceState *s);
+ void apic_sipi(DeviceState *s);
+ void apic_poll_irq(DeviceState *d);
+ void apic_designate_bsp(DeviceState *d, bool bsp);
++int apic_get_highest_priority_irr(DeviceState *dev);
+ 
+ /* pc.c */
+ DeviceState *cpu_get_current_apic(void);
+-- 
+2.14.1
+

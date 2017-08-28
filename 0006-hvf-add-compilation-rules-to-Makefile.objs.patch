@@ -1,0 +1,47 @@
+From 33dd5aa6a18cd35b31315c19eac809b12ef72a66 Mon Sep 17 00:00:00 2001
+From: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+Date: Thu, 17 Aug 2017 17:24:03 -0500
+Subject: [PATCH 06/14] hvf: add compilation rules to Makefile.objs
+
+This commit adds to target/i386/Makefile.objs the necessary rules so
+that the new files for hvf are compiled by the build system.
+It also adds handling of the -enable-hvf argument in the main function
+in vl.c.
+
+Signed-off-by: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+---
+ target/i386/Makefile.objs | 1 +
+ vl.c                      | 7 +++++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/target/i386/Makefile.objs b/target/i386/Makefile.objs
+index 6a26e9d9f0..0bef89c099 100644
+--- a/target/i386/Makefile.objs
++++ b/target/i386/Makefile.objs
+@@ -12,4 +12,5 @@ obj-$(CONFIG_HAX) += hax-all.o hax-mem.o hax-windows.o
+ endif
+ ifdef CONFIG_DARWIN
+ obj-$(CONFIG_HAX) += hax-all.o hax-mem.o hax-darwin.o
++obj-$(CONFIG_HVF) += hvf-utils/ hvf-all.o
+ endif
+diff --git a/vl.c b/vl.c
+index 8e247cc2a2..de7d2a3858 100644
+--- a/vl.c
++++ b/vl.c
+@@ -3751,6 +3751,13 @@ int main(int argc, char **argv, char **envp)
+                 olist = qemu_find_opts("machine");
+                 qemu_opts_parse_noisily(olist, "accel=hax", false);
+                 break;
++#if defined(__APPLE__)
++            case QEMU_OPTION_enable_hvf:
++                olist = qemu_find_opts("machine");
++                qemu_opts_parse_noisily(olist, "accel=hvf", false);
++                hvf_disable(0);
++                break;
++#endif
+             case QEMU_OPTION_M:
+             case QEMU_OPTION_machine:
+                 olist = qemu_find_opts("machine");
+-- 
+2.14.1
+
