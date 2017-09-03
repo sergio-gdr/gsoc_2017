@@ -1,0 +1,116 @@
+From 76943b7aae63ab6ba24dfbfb4a361c720fc78001 Mon Sep 17 00:00:00 2001
+From: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+Date: Wed, 30 Aug 2017 03:03:43 -0500
+Subject: [PATCH v2 00/13] add support for Hypervisor.framework in QEMU
+
+================
+Changes in v2:
+ (1) Removed legacy option "-enable-hvf" in favor of "-M accel=hvf"
+ (2) Added missing copyright headers; replace fprintfs for error_report;
+     improved commit description.
+ (3) Moved patch that adds compilation rules in Makefile.objs right after
+     the patch that adds the new files from Google's repo.
+ (4) Removed conditional macros from cpus.c and cpu.c
+ (5) Moved patch that fixes coding style to patch # 3
+ (6) Fix commit message in apic patch
+ (7) Squash some commits to avoid code churn
+================
+
+The following patchset adds to QEMU the supporting for macOS's native
+hypervisor, Hypervisor.framework (hvf). The code base is taken from
+Google's Android emulator at
+https://android.googlesource.com/platform/external/qemu/+/emu-master-dev.
+
+Apart from general code refactoring, some additional features were implemented:
+retrieve the set of features supported by host cpu and hvf (cpuid);
+dirty page tracking for VGA memory area; reimplementation of the event
+injection mechanism to allow injection of exceptions during vmexits, which is
+exemplified by the injection of a GP fault when the guest vmexits due to
+execution of the vmcall instruction; changing the emulator's use of CPUState
+structure in favor of CPUX86State, so as to in the future remove data structures
+that are uselessly specific to hvf and unified some of the state between kvm/tcg
+and hvf.
+Some features initially planned to implement that didn't make it include:
+page fault handling in the emulator and implementing the dummy_signal to handle
+the SIG_IPI signal without race conditions. Hopefully these can be implemented
+in the near future.
+
+Sergio Andres Gomez Del Real (13):
+  hvf: add support for Hypervisor.framework in the configure script
+  hvf: add code base from Google's QEMU repository
+  hvf: add compilation rules to Makefile.objs
+  hvf: run hvf code through checkpatch.pl and fix style issues
+  hvf: add fields to CPUState and CPUX86State; add definitions
+  hvf: use new helper functions for put/get xsave
+  apic: add function to apic that will be used by hvf
+  hvf: implement hvf_get_supported_cpuid
+  hvf: refactor cpuid code
+  hvf: implement vga dirty page tracking
+  hvf: move fields from CPUState to CPUX86State
+  hvf: refactor event injection code for hvf
+  hvf: inject General Protection Fault when vmexit through vmcall
+
+ configure                           |   38 +
+ cpus.c                              |   92 +-
+ hw/intc/apic.c                      |   11 +
+ include/hw/i386/apic.h              |    1 +
+ include/qom/cpu.h                   |    2 +
+ include/sysemu/hvf.h                |  107 ++
+ qemu-options.hx                     |   10 +-
+ target/i386/Makefile.objs           |    1 +
+ target/i386/cpu-qom.h               |    4 +-
+ target/i386/cpu.c                   |   83 +-
+ target/i386/cpu.h                   |   30 +
+ target/i386/hvf-all.c               | 1136 ++++++++++++++++++
+ target/i386/hvf-i386.h              |   48 +
+ target/i386/hvf-utils/Makefile.objs |    1 +
+ target/i386/hvf-utils/README.md     |    7 +
+ target/i386/hvf-utils/vmcs.h        |  371 ++++++
+ target/i386/hvf-utils/vmx.h         |  222 ++++
+ target/i386/hvf-utils/x86.c         |  184 +++
+ target/i386/hvf-utils/x86.h         |  476 ++++++++
+ target/i386/hvf-utils/x86_cpuid.c   |  417 +++++++
+ target/i386/hvf-utils/x86_cpuid.h   |   52 +
+ target/i386/hvf-utils/x86_decode.c  | 2186 +++++++++++++++++++++++++++++++++++
+ target/i386/hvf-utils/x86_decode.h  |  325 ++++++
+ target/i386/hvf-utils/x86_descr.c   |  124 ++
+ target/i386/hvf-utils/x86_descr.h   |   55 +
+ target/i386/hvf-utils/x86_emu.c     | 1536 ++++++++++++++++++++++++
+ target/i386/hvf-utils/x86_emu.h     |   49 +
+ target/i386/hvf-utils/x86_flags.c   |  333 ++++++
+ target/i386/hvf-utils/x86_flags.h   |  243 ++++
+ target/i386/hvf-utils/x86_gen.h     |   53 +
+ target/i386/hvf-utils/x86_mmu.c     |  273 +++++
+ target/i386/hvf-utils/x86_mmu.h     |   45 +
+ target/i386/hvf-utils/x86hvf.c      |  463 ++++++++
+ target/i386/hvf-utils/x86hvf.h      |   39 +
+ target/i386/kvm.c                   |    2 -
+ 35 files changed, 8987 insertions(+), 32 deletions(-)
+ create mode 100644 include/sysemu/hvf.h
+ create mode 100644 target/i386/hvf-all.c
+ create mode 100644 target/i386/hvf-i386.h
+ create mode 100644 target/i386/hvf-utils/Makefile.objs
+ create mode 100644 target/i386/hvf-utils/README.md
+ create mode 100644 target/i386/hvf-utils/vmcs.h
+ create mode 100644 target/i386/hvf-utils/vmx.h
+ create mode 100644 target/i386/hvf-utils/x86.c
+ create mode 100644 target/i386/hvf-utils/x86.h
+ create mode 100644 target/i386/hvf-utils/x86_cpuid.c
+ create mode 100644 target/i386/hvf-utils/x86_cpuid.h
+ create mode 100644 target/i386/hvf-utils/x86_decode.c
+ create mode 100644 target/i386/hvf-utils/x86_decode.h
+ create mode 100644 target/i386/hvf-utils/x86_descr.c
+ create mode 100644 target/i386/hvf-utils/x86_descr.h
+ create mode 100644 target/i386/hvf-utils/x86_emu.c
+ create mode 100644 target/i386/hvf-utils/x86_emu.h
+ create mode 100644 target/i386/hvf-utils/x86_flags.c
+ create mode 100644 target/i386/hvf-utils/x86_flags.h
+ create mode 100644 target/i386/hvf-utils/x86_gen.h
+ create mode 100644 target/i386/hvf-utils/x86_mmu.c
+ create mode 100644 target/i386/hvf-utils/x86_mmu.h
+ create mode 100644 target/i386/hvf-utils/x86hvf.c
+ create mode 100644 target/i386/hvf-utils/x86hvf.h
+
+-- 
+2.14.1
+
