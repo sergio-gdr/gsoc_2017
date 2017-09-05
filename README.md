@@ -8,7 +8,7 @@ Hypervisor.framework, or HVF, is macOS's native hypervisor or in-kernel accelera
 The aim of my 2017 GSoC project is to add support in QEMU for using HVF so that full-system emulation can benefit from the performance gain when executing code for the x86_64 architecture.
 
 ## Project Execution
-Various possible strategies were evaluated. The best plan that my mentor and I could draw was look for available implementations of Virtual Machine Managers using HVF. Fortunately, we found that Google maintains one such VMM, and best, it is based on an earlier version of QEMU (Ver. 2.8). We decided to take this implementation and integrate it with upstream QEMU, while also implementing a number of missing features. A significant amount of code refactoring was necessary before patches could be sent upstream, including adjusting the whole code base to QEMU's particular coding style.
+Various possible strategies were evaluated. The best plan that my mentor and I could draw was look for available implementations of Virtual Machine Managers using HVF. Fortunately, we found that [Google maintains one such VMM](https://android.googlesource.com/platform/external/qemu/+/emu-master-dev), and best, it is based on an earlier version of QEMU (Ver. 2.8). We decided to take this implementation and integrate it with upstream QEMU, while also implementing a number of missing features. A significant amount of code refactoring was necessary before patches could be sent upstream, including adjusting the whole code base to QEMU's particular coding style.
 
 Initially some code related to the emulation of the xsave/xrstr instructions had to be pulled out of KVM into a new file; these new helper functions are now shared by KVM and HVF.
 
