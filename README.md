@@ -13,4 +13,4 @@ Various possible strategies were evaluated. The best plan that my mentor and I c
 Initially some code related to the emulation of the xsave/xrstr instructions had to be pulled out of KVM into a new file; these new helper functions are now shared by KVM and HVF.
 
 ## Repository Overview
-This repository contains the directories 
+This repository contains the directories for the various patchsets that have been sent upstream.
