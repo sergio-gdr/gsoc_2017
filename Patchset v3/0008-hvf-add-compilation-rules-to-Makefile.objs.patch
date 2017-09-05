@@ -1,0 +1,28 @@
+From d56a8a4450030f445e8a968e6c607599005f3dbc Mon Sep 17 00:00:00 2001
+From: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+Date: Thu, 17 Aug 2017 17:24:03 -0500
+Subject: [PATCH v3 08/14] hvf: add compilation rules to Makefile.objs
+
+This commit adds to target/i386/Makefile.objs the necessary rules so
+that the new files for hvf are compiled by the build system.
+It also adds handling of the -enable-hvf argument in the main function
+in vl.c.
+
+Signed-off-by: Sergio Andres Gomez Del Real <Sergio.G.DelReal@gmail.com>
+---
+ target/i386/Makefile.objs | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/target/i386/Makefile.objs b/target/i386/Makefile.objs
+index 6a26e9d9f0..0bef89c099 100644
+--- a/target/i386/Makefile.objs
++++ b/target/i386/Makefile.objs
+@@ -12,4 +12,5 @@ obj-$(CONFIG_HAX) += hax-all.o hax-mem.o hax-windows.o
+ endif
+ ifdef CONFIG_DARWIN
+ obj-$(CONFIG_HAX) += hax-all.o hax-mem.o hax-darwin.o
++obj-$(CONFIG_HVF) += hvf-utils/ hvf-all.o
+ endif
+-- 
+2.14.1
+
